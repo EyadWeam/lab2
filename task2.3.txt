@@ -1,0 +1,143 @@
+package javaapplication8;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.util.*;
+
+public class JavaApplication8 {
+    private JFrame frame;
+    private JTextField keywordField, inputField, outputField;
+    private JTextArea matrixArea;
+    private JButton encryptButton, decryptButton;
+    private char[][] playfairMatrix;
+
+    public JavaApplication8() {
+        frame = new JFrame("Playfair Cipher");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 300); // تقليل حجم الواجهة
+        frame.setLayout(new GridLayout(6, 1));
+
+        keywordField = new JTextField();
+        inputField = new JTextField();
+        outputField = new JTextField();
+        outputField.setEditable(false);
+        matrixArea = new JTextArea();
+        matrixArea.setEditable(false);
+
+        encryptButton = new JButton("Encrypt");
+        decryptButton = new JButton("Decrypt");
+
+        frame.add(new JLabel("Keyword:"));
+        frame.add(keywordField);
+        frame.add(new JLabel("Input Text:"));
+        frame.add(inputField);
+        frame.add(new JLabel("Playfair Matrix:"));
+        frame.add(matrixArea);
+        frame.add(encryptButton);
+        frame.add(decryptButton);
+        frame.add(new JLabel("Output Text:"));
+        frame.add(outputField);
+
+        encryptButton.addActionListener(e -> processText(true));
+        decryptButton.addActionListener(e -> processText(false));
+
+        frame.setVisible(true);
+    }
+
+    private void processText(boolean isEncryption) {
+        String keyword = keywordField.getText().toUpperCase().replaceAll("[^A-Z]", "");
+        String input = inputField.getText().toUpperCase().replaceAll("[^A-Z]", "");
+        if (keyword.isEmpty() || input.isEmpty()) {
+            outputField.setText("Invalid input!");
+            return;
+        }
+        generateMatrix(keyword);
+        matrixArea.setText(displayMatrix());
+        outputField.setText(isEncryption ? encrypt(input) : decrypt(input));
+    }
+
+    private void generateMatrix(String keyword) {
+        Set<Character> used = new LinkedHashSet<>();
+        for (char c : keyword.toCharArray()) {
+            if (c == 'J') c = 'I';
+            used.add(c);
+        }
+        for (char c = 'A'; c <= 'Z'; c++) {
+            if (c == 'J') continue;
+            used.add(c);
+        }
+        playfairMatrix = new char[5][5];
+        Iterator<Character> it = used.iterator();
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                playfairMatrix[i][j] = it.next();
+            }
+        }
+    }
+
+    private String displayMatrix() {
+        StringBuilder sb = new StringBuilder();
+        for (char[] row : playfairMatrix) {
+            sb.append(Arrays.toString(row)).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String encrypt(String text) {
+        return processPairs(prepareText(text), true);
+    }
+
+    private String decrypt(String text) {
+        return processPairs(text, false);
+    }
+
+    private String prepareText(String text) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c1 = text.charAt(i);
+            char c2 = (i + 1 < text.length()) ? text.charAt(i + 1) : 'X';
+            if (c1 == c2) c2 = 'X';
+            else i++;
+            sb.append(c1).append(c2);
+        }
+        return sb.toString();
+    }
+
+    private String processPairs(String text, boolean encrypt) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i += 2) {
+            char c1 = text.charAt(i);
+            char c2 = text.charAt(i + 1);
+            int[] pos1 = findPosition(c1);
+            int[] pos2 = findPosition(c2);
+
+            if (pos1[0] == pos2[0]) {
+                sb.append(playfairMatrix[pos1[0]][(pos1[1] + (encrypt ? 1 : 4)) % 5]);
+                sb.append(playfairMatrix[pos2[0]][(pos2[1] + (encrypt ? 1 : 4)) % 5]);
+            } else if (pos1[1] == pos2[1]) {
+                sb.append(playfairMatrix[(pos1[0] + (encrypt ? 1 : 4)) % 5][pos1[1]]);
+                sb.append(playfairMatrix[(pos2[0] + (encrypt ? 1 : 4)) % 5][pos2[1]]);
+            } else {
+                sb.append(playfairMatrix[pos1[0]][pos2[1]]);
+                sb.append(playfairMatrix[pos2[0]][pos1[1]]);
+            }
+        }
+        return sb.toString();
+    }
+
+    private int[] findPosition(char c) {
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (playfairMatrix[i][j] == c) {
+                    return new int[]{i, j};
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(JavaApplication8::new);
+    }
+}

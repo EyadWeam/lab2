@@ -1,0 +1,88 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
+ */
+package javaapplication4;
+import java.util.Scanner;
+/**
+ *
+ * @author HP
+ */
+public class JavaApplication4 {
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Choose an operation: 1- Encrypt  2- Decrypt");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.println("Choose the method: 1- Caesar  2- Vigenere");
+        int method = scanner.nextInt();
+        scanner.nextLine();
+
+        if (method == 1) {
+            System.out.println("Enter the text:");
+            String text = scanner.nextLine();
+            System.out.println("Enter the key (number):");
+            int key = scanner.nextInt();
+            scanner.nextLine();
+            
+            if (choice == 1) {
+                System.out.println("Encrypted text: " + caesarCipher(text, key));
+            } else {
+                System.out.println("Decrypted text: " + caesarCipher(text, -key));
+            }
+        } else if (method == 2) {
+            System.out.println("Enter the text:");
+            String text = scanner.nextLine();
+            System.out.println("Enter the keyword:");
+            String keyword = scanner.nextLine();
+            
+            if (choice == 1) {
+                System.out.println("Encrypted text: " + vigenereCipher(text, keyword, true));
+            } else {
+                System.out.println("Decrypted text: " + vigenereCipher(text, keyword, false));
+            }
+        } else {
+            System.out.println("Invalid choice!");
+        }
+
+        scanner.close();
+    }
+
+    public static String caesarCipher(String text, int key) {
+        StringBuilder result = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            if (Character.isLetter(c)) {
+                char base = Character.isUpperCase(c) ? 'A' : 'a';
+                c = (char) ((c - base + key + 26) % 26 + base);
+            }
+            result.append(c);
+        }
+        return result.toString();
+    }
+
+    public static String vigenereCipher(String text, String keyword, boolean encrypt) {
+        StringBuilder result = new StringBuilder();
+        keyword = keyword.toLowerCase();
+        int keywordIndex = 0;
+        int direction = encrypt ? 1 : -1;
+        
+        for (char c : text.toCharArray()) {
+            if (Character.isLetter(c)) {
+                char base = Character.isUpperCase(c) ? 'A' : 'a';
+                int key = keyword.charAt(keywordIndex % keyword.length()) - 'a';
+                c = (char) ((c - base + direction * key + 26) % 26 + base);
+                keywordIndex++;
+            }
+            result.append(c);
+        }
+        return result.toString();
+        
+    }
+    
+}
